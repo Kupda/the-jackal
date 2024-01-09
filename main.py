@@ -1,5 +1,6 @@
 import pygame
 import button
+import time
 
 pygame.init()
 
@@ -75,6 +76,7 @@ while run:
             # draw the different options buttons
             if back_button.draw(screen):
                 menu_state = "main"
+                time.sleep(0.1)
     else:
         draw_text("Gaming. Press SPACE to pause", font, TEXT_COL, 160, 250)
     clock.tick(200)
@@ -88,3 +90,4 @@ while run:
             run = False
     pygame.display.update()
 pygame.quit()
+
