@@ -1,50 +1,38 @@
 import pygame
 import button
 import time
+from screens import menu_screen, settings_screen, events, game_screen
+from audio import audio
+
 
 pygame.init()
 
 # create game window
 SCREEN_WIDTH = 0
 SCREEN_HEIGHT = 0
-
-
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption("Main Menu")
 
 # game variables
 game_paused = True
-menu_state = "main"
+game_state = "menu"
+
 
 # define fonts
 font = pygame.font.SysFont("arialblack", 40)
 
+menu_screen = menu_screen.MenuScreen(screen, font)
+settings_screen = settings_screen.SettingsScreen(screen, font)
+game_screen = game_screen.GameScreen(screen)
+
 # define colours
 TEXT_COL = (255, 255, 255)
-
-# load button images
-resume_img = pygame.image.load("images/start_game.png").convert_alpha()
-options_img = pygame.image.load("images/options.png").convert_alpha()
-quit_img = pygame.image.load("images/quit.png").convert_alpha()
-replay_img = pygame.image.load("images/replay.png").convert_alpha()
-video_img = pygame.image.load('images/button_video.png').convert_alpha()
-audio_img = pygame.image.load('images/button_audio.png').convert_alpha()
-keys_img = pygame.image.load('images/button_keys.png').convert_alpha()
-back_img = pygame.image.load('images/button_back.png').convert_alpha()
-
-x, y = screen.get_size()
-
-# create button instances
-resume_button = button.Button(x / 2 - 150, y / 2 - 150, resume_img, 0.75)
-replay_button = button.Button(x / 2 - 150, y / 2 + 0, replay_img, 0.75)
-options_button = button.Button(x / 2 - 150, y / 2 + 150, options_img, 0.75)
-quit_button = button.Button(x / 2 - 150, y / 2 + 300, quit_img, 0.75)
 
 
 """video_button = button.Button(226, 75, video_img, 1)
 audio_button = button.Button(225, 200, audio_img, 1)
 keys_button = button.Button(246, 325, keys_img, 1)"""
-back_button = button.Button(x / 2 - 150, y / 2 + 300, quit_img, 0.75)
+#back_button = button.Button(x / 2 - 150, y / 2 + 300, quit_img, 0.75)
 
 
 def draw_text(text, font, text_col, x, y):
@@ -60,9 +48,13 @@ while run:
     # check if game is paused
     if game_paused:
         # check menu state
-        if menu_state == "main":
-            draw_text("GAME", font, TEXT_COL, x / 2 - 50, y / 2 - 300)
-            # draw pause screen buttons
+        if game_state == "menu":
+            menu_screen.draw()
+        if game_state == 'settings':
+            settings_screen.draw()
+        if game_state == 'game':
+            game_screen.draw()
+            """# draw pause screen buttons
             if resume_button.draw(screen):
                 game_paused = False
             if replay_button.draw(screen):
@@ -76,7 +68,7 @@ while run:
             # draw the different options buttons
             if back_button.draw(screen):
                 menu_state = "main"
-                time.sleep(0.1)
+                time.sleep(0.1)"""
     else:
         draw_text("Gaming. Press SPACE to pause", font, TEXT_COL, 160, 250)
     clock.tick(200)
@@ -88,6 +80,11 @@ while run:
                 game_paused = True
         if event.type == pygame.QUIT:
             run = False
+        if event.type == events.OPEN_MENU_SCREEN:
+            game_state = "menu"
+        if event.type == events.OPEN_SETTINGS_SCREEN:
+            game_state = "settings"
+        if event.type == events.OPEN_GAME_SCREEN:
+            game_state = "game"
     pygame.display.update()
 pygame.quit()
-
