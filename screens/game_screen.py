@@ -12,15 +12,12 @@ class GameScreen():
         self.x, self.y = screen.get_size()
         self.screen = screen
         self.board = Board(screen, self.x, self.y)
+        self.current_player = 0
         self.players = []
-        #self.pirate = Pirate(425, 325, 1, 1)
-        #self.ship = Ship(400, 300, 1, True)
 
     def draw(self):
         self.board.draw()
         self.draw_players()
-        #self.ship.draw(self.screen)
-        #self.pirate.draw(self.screen)
 
     def set_players(self, count):
         for i in range(count):
@@ -29,3 +26,12 @@ class GameScreen():
     def draw_players(self):
         for player in self.players:
             player.draw()
+
+    def click_cell(self, column, row):
+        self.players[self.current_player].move_pirate(column, row)
+        self.change_player()
+
+    def change_player(self):
+        self.current_player += 1
+        if self.current_player >= len(self.players):
+            self.current_player = 0

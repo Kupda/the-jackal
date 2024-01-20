@@ -47,3 +47,11 @@ class Pirate():
         else:
             size = self.size
         self.image = pygame.transform.scale(pirates_img[self.color], (size, size))
+
+    def move(self, cell):
+        self.x = cell.x
+        self.y = cell.y
+        self.column = cell.column
+        self.row = cell.row
+
+

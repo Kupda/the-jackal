@@ -5,6 +5,7 @@ from screens import menu_screen, settings_screen, events, game_screen, players_s
 from audio import audio
 
 
+
 pygame.init()
 
 # create game window
@@ -92,5 +93,7 @@ while run:
             game_state = "game"
         if event.type == events.OPEN_PLAYERS_SCREEN:
             game_state = "players"
+        if event.type == events.CLICK_CELL:
+            game_screen.click_cell(event.column, event.row)
     pygame.display.update()
 pygame.quit()

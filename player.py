@@ -1,5 +1,6 @@
 import pygame
 from pirate import Pirate
+from ship import Ship
 
 start_pos = {
     'black': [6, 0],
@@ -7,8 +8,6 @@ start_pos = {
     'yellow': [12, 6],
     'red': [0, 6]
 }
-
-
 
 
 class Player():
@@ -19,6 +18,7 @@ class Player():
         self.color = color
         self.active_pirate = 0
         self.pirates = []
+        self.ship = self.create_ship()
         self.create_pirates()
         self.select_pirate(0)
 
@@ -34,9 +34,20 @@ class Player():
             pirate.draw()
 
     def draw(self):
+        self.ship.draw()
         self.draw_pirates()
 
     def select_pirate(self, num):
         self.active_pirate = num
         for pirate in self.pirates:
             pirate.set_active(self.pirates.index(pirate) == num)
+
+    def create_ship(self):
+        ship_size = self.field.size_cell - 2
+        column, row = start_pos[self.color]
+        cell = self.field.get_cell_by_pos(column, row)
+        return Ship(self.screen, cell.x+1, cell.y+1, self.color, ship_size)
+
+    def move_pirate(self, column, row):
+        cell = self.field.get_cell_by_pos(column, row)
+        self.pirates[self.active_pirate].move(cell)
