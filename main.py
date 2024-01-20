@@ -1,7 +1,7 @@
 import pygame
 import button
 import time
-from screens import menu_screen, settings_screen, events, game_screen
+from screens import menu_screen, settings_screen, events, game_screen, players_screen
 from audio import audio
 
 
@@ -24,6 +24,7 @@ font = pygame.font.SysFont("arialblack", 40)
 menu_screen = menu_screen.MenuScreen(screen, font)
 settings_screen = settings_screen.SettingsScreen(screen, font)
 game_screen = game_screen.GameScreen(screen)
+players_screen = players_screen.PlayersScreen(screen, font)
 
 # define colours
 TEXT_COL = (255, 255, 255)
@@ -54,6 +55,8 @@ while run:
             settings_screen.draw()
         if game_state == 'game':
             game_screen.draw()
+        if game_state == 'players':
+            players_screen.draw()
             """# draw pause screen buttons
             if resume_button.draw(screen):
                 game_paused = False
@@ -85,6 +88,9 @@ while run:
         if event.type == events.OPEN_SETTINGS_SCREEN:
             game_state = "settings"
         if event.type == events.OPEN_GAME_SCREEN:
+            game_screen.set_players(event.count)
             game_state = "game"
+        if event.type == events.OPEN_PLAYERS_SCREEN:
+            game_state = "players"
     pygame.display.update()
 pygame.quit()

@@ -2,7 +2,7 @@ import pygame
 import button
 import time
 import os
-from .events import OPEN_SETTINGS_SCREEN, OPEN_GAME_SCREEN
+from .events import *
 
 
 resume_img = pygame.image.load("images/start_game.png")
@@ -46,5 +46,5 @@ class MenuScreen():
         pygame.event.post(open_settings_event)
 
     def start_game(self):
-        start_game_event = pygame.event.Event(OPEN_GAME_SCREEN)
+        start_game_event = pygame.event.Event(OPEN_PLAYERS_SCREEN)
         pygame.event.post(start_game_event)

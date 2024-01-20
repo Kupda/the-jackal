@@ -1,5 +1,7 @@
 import pygame
 import math
+from field import Field
+
 
 water_image_file = pygame.image.load('images/water_tile.png')
 
@@ -9,6 +11,7 @@ class Board():
         self.window_width = window_width
         self.window_height = window_height
         self.screen = screen
+        self.field = Field(screen)
 
     def draw_background(self):
         water_image = water_image_file
@@ -20,3 +23,7 @@ class Board():
         for x in range(water_tiles_cols):
             for y in range(water_tiles_rows):
                 self.screen.blit(water_image, (x * tile_size, y * tile_size))
+
+    def draw(self):
+        self.draw_background()
+        self.field.draw()
