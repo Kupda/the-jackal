@@ -53,3 +53,5 @@ class SettingsScreen():
     def toggle_music(self):
         audio.toggle_music()
 
+    def pass_event(self, event):
+        pass

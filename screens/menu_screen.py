@@ -48,3 +48,6 @@ class MenuScreen():
     def start_game(self):
         start_game_event = pygame.event.Event(OPEN_PLAYERS_SCREEN)
         pygame.event.post(start_game_event)
+
+    def pass_event(self, event):
+        pass

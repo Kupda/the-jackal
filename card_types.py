@@ -1,6 +1,5 @@
 import pygame
 
-
 default_image_file = pygame.image.load('images/grass.png')
 empty_image_file_1 = pygame.image.load('images/empty-1.png')
 empty_image_file_2 = pygame.image.load('images/empty-2.png')
@@ -33,6 +32,23 @@ plane_image_file = pygame.image.load('images/plane.png')
 balloon_image_file = pygame.image.load('images/balloon.png')
 keg_image_file = pygame.image.load('images/keg.png')
 gun_image_file = pygame.image.load('images/gun.png')
+
+
+def horse_available_cells(column, row, cell, type='ground', player=None):
+    return ((abs(cell.column - column) == 1 and abs(cell.row - row) == 2)
+            or (abs(cell.column - column) == 2 and abs(cell.row - row) == 1))
+
+
+def balloon_available_cells(column, row, cell, type='ground', player=None):
+    if not player:
+        return False
+    else:
+        return cell.column == player.ship.column and cell.row == player.ship.row
+
+
+def plane_available_cells(column, row, cell, type='ground', player=None):
+    return ((column != cell.column or row != cell.row)
+            and (cell.type == 'ground' or (cell.column == player.ship.column and cell.row == player.ship.row)))
 
 
 card_types = {
@@ -81,10 +97,11 @@ card_types = {
         'quantity': 3,
         'image': arrow_4s_image_file
     },
-    'HORSE' : {
+    'HORSE': {
         'value': 9,
         'quantity': 2,
-        'image': horse_image_file
+        'image': horse_image_file,
+        'available cells': horse_available_cells
     },
     'ROTATE_2' : {
         'value': 10,
@@ -164,12 +181,14 @@ card_types = {
     'PLANE' : {
         'value': 25,
         'quantity': 1,
-        'image': plane_image_file
+        'image': plane_image_file,
+        'available cells': plane_available_cells
     },
     'BALLOON' : {
         'value': 26,
         'quantity': 2,
-        'image': balloon_image_file
+        'image': balloon_image_file,
+        'available cells': balloon_available_cells
     },
     'GUN' : {
         'value': 27,

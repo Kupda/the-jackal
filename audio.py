@@ -6,6 +6,9 @@ class Audio():
         pygame.mixer.init()
         self.sounds = []
         self.click_sound = pygame.mixer.Sound('sounds/click.wav')
+        self.shoot_sound = pygame.mixer.Sound('sounds/shoot.wav')
+        self.click_sound = pygame.mixer.Sound('sounds/click.wav')
+        self.steps_sound = pygame.mixer.Sound('sounds/steps.wav')
         pygame.mixer.music.load('sounds/music.wav')
         pygame.mixer.music.play(-1)
         self.music_muted = False

@@ -12,6 +12,12 @@ for key, card_type in card_types.card_types.items():
 random.shuffle(card_types_list)
 
 
+def check_cell_available(column, row, cell, type='ground', player=None):
+    dist = 1
+    return (abs(column - cell.column) <= dist and (abs(row - cell.row) <= dist)
+            and not (column == cell.column and row == cell.row) and cell.type == type)
+
+
 class Field():
     def __init__(self, screen):
         self.screen = screen
@@ -38,7 +44,8 @@ class Field():
                 if [column, row] not in empty_cells:
                     cell_type = 'ground'
                     card_type = None
-                    if (column == 0 or row == 0 or column == 12 or row == 12 or (row == 1 and column == 1) or (column == 11 and row == 1) or
+                    if (column == 0 or row == 0 or column == 12 or row == 12 or (row == 1 and column == 1)
+                            or (column == 11 and row == 1) or
                             (column == 1 and row == 11) or (column == 11 and row == 11)):
                         cell_type = 'water'
                     else:
@@ -52,10 +59,12 @@ class Field():
     def get_cell_by_pos(self, column, row):
         return next((cell for cell in self.cells if cell.column == column and cell.row == row), None)
 
+    def update_available_cells(self, column, row, type='ground', player=None, check=check_cell_available):
+        for cell in self.cells:
+            cell.hovered = False
+            available = check(column, row, cell, type, player)
+            cell.set_available(available)
 
-
-
-
-
-
+    def get_available_cells(self):
+        return [cell for cell in self.cells if cell.available]
 

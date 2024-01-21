@@ -1,9 +1,8 @@
 import pygame
 from card import Card
-from screens.events import CLICK_CELL
 
 class Cell():
-    def __init__(self, screen, size, column, row, x, y, card_type=None, type="ground"):
+    def __init__(self, screen, size, column, row, x, y, card_type = None, type = 'ground', available = False):
         self.screen = screen
         self.size = size
         self.row = row
@@ -13,26 +12,36 @@ class Cell():
         self.type = type
         self.card_type = card_type
         self.rect = pygame.rect.Rect(self.x, self.y, self.size, self.size)
-        self.pressed = 0
+        self.hovered = False
+        self.available = False
         if self.card_type:
-            self.card = Card(self.screen, self.size, self.x, self.y, self.card_type, False)
+            self.card = Card(self.screen, self.size, self.x, self.y, self.card_type, True)
+        else:
+            self.card = None
 
     def draw(self):
-        self.check_if_click()
+        self.check_if_hovered()
         if self.type == 'water':
-            pygame.draw.rect(self.screen, 'blue', (self.x, self.y, self.size, self.size), 4)
-        if self.card_type:
-            self.card.draw()
+            if self.hovered:
+                pygame.draw.rect(self.screen, (53, 134, 235), (self.x, self.y, self.size, self.size))
 
-    def check_if_click(self):
+            pygame.draw.rect(self.screen, (33, 118, 225), (self.x, self.y, self.size, self.size), 4)
+
+        elif self.type == 'ground':
+            if self.card_type:
+                self.card.draw()
+
+            if self.hovered:
+                pygame.draw.rect(self.screen, '#22C95E', (self.x, self.y, self.size, self.size), 4)
+
+    def check_if_hovered(self):
+        if not self.available:
+            return
+        
         if self.rect.collidepoint(pygame.mouse.get_pos()):
-            if pygame.mouse.get_pressed()[0] and self.pressed == 0:
-                # print("Execunting code for button '" + self.text + "'")
-                self.pressed = 1
-            if pygame.mouse.get_pressed() == (0, 0, 0) and self.pressed == 1:
-                self.on_click()
-                self.pressed = 0
+            self.hovered = True
+        else:
+            self.hovered = False
 
-    def on_click(self):
-        cell_click_event = pygame.event.Event(CLICK_CELL, column=self.column, row=self.row)
-        pygame.event.post(cell_click_event)
+    def set_available(self, available):
+        self.available = available

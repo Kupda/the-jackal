@@ -13,10 +13,10 @@ SCREEN_WIDTH = 0
 SCREEN_HEIGHT = 0
 screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
 pygame.display.set_caption("Main Menu")
+pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
 
 # game variables
 game_paused = True
-game_state = "menu"
 
 
 # define fonts
@@ -26,6 +26,8 @@ menu_screen = menu_screen.MenuScreen(screen, font)
 settings_screen = settings_screen.SettingsScreen(screen, font)
 game_screen = game_screen.GameScreen(screen)
 players_screen = players_screen.PlayersScreen(screen, font)
+
+active_screen = menu_screen
 
 # define colours
 TEXT_COL = (255, 255, 255)
@@ -47,53 +49,26 @@ run = True
 clock = pygame.time.Clock()
 while run:
     screen.fill('#94ac80')
-    # check if game is paused
-    if game_paused:
-        # check menu state
-        if game_state == "menu":
-            menu_screen.draw()
-        if game_state == 'settings':
-            settings_screen.draw()
-        if game_state == 'game':
-            game_screen.draw()
-        if game_state == 'players':
-            players_screen.draw()
-            """# draw pause screen buttons
-            if resume_button.draw(screen):
-                game_paused = False
-            if replay_button.draw(screen):
-                game_paused = False
-            if options_button.draw(screen):
-                menu_state = "options"
-            if quit_button.draw(screen):
-                run = False
-        # check if the options menu is open
-        if menu_state == "options":
-            # draw the different options buttons
-            if back_button.draw(screen):
-                menu_state = "main"
-                time.sleep(0.1)"""
-    else:
-        draw_text("Gaming. Press SPACE to pause", font, TEXT_COL, 160, 250)
+    active_screen.draw()
     clock.tick(200)
 
     # event handler
     for event in pygame.event.get():
+        active_screen.pass_event(event)
+
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE:
                 game_paused = True
         if event.type == pygame.QUIT:
             run = False
         if event.type == events.OPEN_MENU_SCREEN:
-            game_state = "menu"
+            active_screen = menu_screen
         if event.type == events.OPEN_SETTINGS_SCREEN:
-            game_state = "settings"
+            active_screen = settings_screen
         if event.type == events.OPEN_GAME_SCREEN:
             game_screen.set_players(event.count)
-            game_state = "game"
+            active_screen = game_screen
         if event.type == events.OPEN_PLAYERS_SCREEN:
-            game_state = "players"
-        if event.type == events.CLICK_CELL:
-            game_screen.click_cell(event.column, event.row)
+            active_screen = players_screen
     pygame.display.update()
 pygame.quit()

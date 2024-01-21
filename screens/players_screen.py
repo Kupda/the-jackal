@@ -46,3 +46,6 @@ class PlayersScreen():
     def start_game(self, count):
         start_event = pygame.event.Event(OPEN_GAME_SCREEN, count=count)
         pygame.event.post(start_event)
+
+    def pass_event(self, event):
+        pass

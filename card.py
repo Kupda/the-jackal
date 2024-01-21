@@ -17,4 +17,6 @@ class Card():
         card_image = self.image if self.opened else self.default_image
         self.screen.blit(card_image, (self.x, self.y))
 
+    def open(self):
+        self.opened = True
 
