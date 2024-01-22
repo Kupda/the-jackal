@@ -12,8 +12,11 @@ for key, card_type in card_types.card_types.items():
 random.shuffle(card_types_list)
 
 
-def check_cell_available(column, row, cell, type='ground', player=None):
+def check_cell_available(cell, column, row, player=None):
+    type = 'water' if player.pirates[player.active_pirate].swimming else 'ground'
     dist = 1
+    if not player.get_active_pirate().can_move:
+        return False
     return (abs(column - cell.column) <= dist and (abs(row - cell.row) <= dist)
             and not (column == cell.column and row == cell.row) and cell.type == type)
 
@@ -59,10 +62,10 @@ class Field():
     def get_cell_by_pos(self, column, row):
         return next((cell for cell in self.cells if cell.column == column and cell.row == row), None)
 
-    def update_available_cells(self, column, row, type='ground', player=None, check=check_cell_available):
+    def update_available_cells(self, column, row, player=None, check=check_cell_available):
         for cell in self.cells:
             cell.hovered = False
-            available = check(column, row, cell, type, player)
+            available = check(cell, column, row, player)
             cell.set_available(available)
 
     def get_available_cells(self):

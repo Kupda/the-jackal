@@ -51,36 +51,80 @@ class GameScreen():
             self.pirate_mode_button.draw(self.screen)
 
     def click_cell(self, cell):
-        self.check_enemies_in_cell(cell)
-        if self.get_current_player().mode == 'pirate':
-            self.get_current_player().move_pirate(cell)
-            audio.steps_sound.play()
-        elif self.get_current_player().mode == 'ship':
-            self.get_current_player().move_ship(cell)
-        if cell.card_type == 'HORSE':
-            self.field.update_available_cells(cell.column, cell.row, 'ground', None, card_types.card_types['HORSE']['available cells'])
-        elif cell.card_type == 'BALLOON':
-            self.field.update_available_cells(cell.column, cell.row, 'ground', self.get_current_player(), card_types.card_types['BALLOON']['available cells'])
-        elif cell.card_type == 'PLANE':
-            self.field.update_available_cells(cell.column, cell.row, 'ground', self.get_current_player(), card_types.card_types['PLANE']['available cells'])
+        effect_cards = ['HORSE', 'BALLOON', 'PLANE', 'ICE', 'CROCODILE',
+                        'GUN_TOP', 'ARROW_1S', 'ARROW_2S', 'ARROW_1D',
+                        'ARROW_2D', 'ARROW_3', 'ARROW_4D', 'ARROW_4S', 'GUN_BOTTOM', 'GUN_LEFT', 'GUN_RIGHT']
+        current_player = self.get_current_player()
+        sound = audio.steps_sound
+        enemy_beaten = self.check_enemies_in_cell(cell)
+        move_end = False
+
+        if enemy_beaten and current_player.mode == 'pirate':
+            sound = audio.shoot_sound
+        elif enemy_beaten and current_player.mode == 'ship':
+            sound = audio.dead_sound
+
+        if current_player.mode == 'pirate':
+            current_player.move_pirate(cell)
+        elif current_player.mode == 'ship':
+            current_player.move_ship(cell)
+
+        for pirate in current_player.pirates:
+            pirate.can_move = True
+
+        if cell.card_type in effect_cards:
+            current_player.auto_steps += 1
+            if current_player.auto_steps > 20:
+                current_player.get_active_pirate().die()
+                self.change_player()
+                move_end = True
+            current_player.another_step_mode = True
+            self.field.update_available_cells(cell.column, cell.row, current_player, card_types.card_types[cell.card_type]['available cells'])
+            
+            if cell.card_type == 'PLANE' and current_player.plane_available:
+                current_player.plane_available = False
+            elif cell.card_type == 'PLANE':
+                move_end = True
+                self.change_player()
+            if 'sound' in card_types.card_types[cell.card_type]:
+                sound = card_types.card_types[cell.card_type]['sound']
         else:
+            if cell.card_type == 'KEG':
+                current_player.get_active_pirate().can_move = False
+            elif cell.card_type == 'CANNIBAL':
+                current_player.get_active_pirate().die()
+            move_end = True
             self.change_player()
-            return 1
+        
+        sound.play()
+
+        if move_end:
+            return
+
         available_cells = self.field.get_available_cells()
-        if len(available_cells) == 1 and self.get_current_player().mode == 'pirate':
+
+        if len(available_cells) == 1 and current_player.mode == 'pirate':
             self.click_cell(available_cells[0])
 
     def check_enemies_in_cell(self, cell):
-        enemy_killed = False
+        enemy_beaten = False
+
         for i, player in enumerate(self.players):
             if i != self.current_player:
+                if player.ship.column == cell.column and player.ship.row == cell.row:
+                    self.get_current_player().get_active_pirate().die()
+                    enemy_beaten = True
+                    break
+
                 for pirate in player.pirates:
                     if pirate.column == cell.column and pirate.row == cell.row:
-                        player.respawn_pirate(pirate)
-                        enemy_killed = True
+                        if player.mode == 'pirate':
+                            player.respawn_pirate(pirate)
+                        else:
+                            pirate.die()
+                        enemy_beaten = True
 
-        if enemy_killed:
-            audio.shoot_sound.play()
+        return enemy_beaten
 
     def change_player(self):
         self.current_player += 1
@@ -88,11 +132,15 @@ class GameScreen():
             self.current_player = 0
         self.get_current_player().enter_pirate_mode()
         self.update_active_pirate()
+        self.get_current_player().auto_steps = 0
 
     def update_active_pirate(self):
         for i, player in enumerate(self.players):
             if i == self.current_player:
-                player.select_pirate(player.active_pirate)
+                if not player.get_active_pirate().alive:
+                    player.select_first_alive_pirate()
+                else:
+                    player.select_pirate(player.active_pirate)
             else:
                 player.deselect_pirates()
                 player.ship.set_active(False)
@@ -109,7 +157,7 @@ class GameScreen():
             mouse_pos = pygame.mouse.get_pos()
             
             for pirate in self.get_current_player().pirates:
-                if pirate.rect.collidepoint(mouse_pos) and not(pirate.active):
+                if pirate.rect.collidepoint(mouse_pos) and not(pirate.active) and pirate.alive:
                     return self.get_current_player().select_pirate(pirate.index)
 
             for cell in self.field.cells:
@@ -117,7 +165,9 @@ class GameScreen():
                     return self.click_cell(cell)
            
     def enter_pirate_mode(self):
-        self.get_current_player().enter_pirate_mode()
+        if self.get_current_player().another_step_mode == False:
+            self.get_current_player().enter_pirate_mode()
                
     def enter_ship_mode(self):
-        self.get_current_player().enter_ship_mode()
+        if self.get_current_player().another_step_mode == False:
+            self.get_current_player().enter_ship_mode()

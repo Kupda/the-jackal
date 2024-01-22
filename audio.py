@@ -9,6 +9,8 @@ class Audio():
         self.shoot_sound = pygame.mixer.Sound('sounds/shoot.wav')
         self.click_sound = pygame.mixer.Sound('sounds/click.wav')
         self.steps_sound = pygame.mixer.Sound('sounds/steps.wav')
+        self.dead_sound = pygame.mixer.Sound('sounds/dead.wav')
+        self.crocodile_sound = pygame.mixer.Sound('sounds/crocodile.wav')
         pygame.mixer.music.load('sounds/music.wav')
         pygame.mixer.music.play(-1)
         self.music_muted = False

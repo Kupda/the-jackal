@@ -15,7 +15,7 @@ class Cell():
         self.hovered = False
         self.available = False
         if self.card_type:
-            self.card = Card(self.screen, self.size, self.x, self.y, self.card_type, True)
+            self.card = Card(self.screen, self.size, self.x, self.y, self.card_type, False)
         else:
             self.card = None
 
@@ -33,6 +33,12 @@ class Cell():
 
             if self.hovered:
                 pygame.draw.rect(self.screen, '#22C95E', (self.x, self.y, self.size, self.size), 4)
+
+        if not self.available:
+            disabled_surface = pygame.Surface((self.size, self.size))
+            disabled_surface.set_alpha(100)
+            disabled_surface.fill('#333333')
+            self.screen.blit(disabled_surface, (self.x, self.y))
 
     def check_if_hovered(self):
         if not self.available:

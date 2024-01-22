@@ -47,10 +47,11 @@ def draw_text(text, font, text_col, x, y):
 # game loop
 run = True
 clock = pygame.time.Clock()
+fps = 60
 while run:
     screen.fill('#94ac80')
     active_screen.draw()
-    clock.tick(200)
+    clock.tick(fps)
 
     # event handler
     for event in pygame.event.get():

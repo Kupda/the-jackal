@@ -12,7 +12,7 @@ class Ship():
         self.x = x
         self.y = y
         self.swing_y = 0
-        self.swing_direction = -0.4
+        self.swing_direction = -0.3
         self.color = color
         self.has_pirates = has_pirates
         self.active = active
@@ -46,15 +46,15 @@ class Ship():
 
     def swing(self):
         if self.swing_y <= -5:
-            self.swing_direction = 0.4
+            self.swing_direction = 0.3
         elif self.swing_y >= 0:
-            self.swing_direction = -0.4
+            self.swing_direction = -0.3
 
         self.swing_y += self.swing_direction
 
     def start_swinging(self):
         self.swing_y = 0
-        self.swing_direction = -0.2
+        self.swing_direction = -0.3
 
     def move(self, cell):
         self.x = cell.x

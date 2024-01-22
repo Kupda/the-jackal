@@ -10,9 +10,10 @@ start_pos = {
 }
 
 
-def check_ship_cell_available(column, row, cell, type, player=None):
-    if ((type == 'horizontal' and (row != cell.row or abs(column - cell.column) != 1))
-            or (type == 'vertical' and (column != cell.column or abs(row - cell.row) != 1))
+def check_ship_cell_available(cell, column, row, player=None):
+    movement_direction = player.ship.movement
+    if ((movement_direction == 'horizontal' and (row != cell.row or abs(column - cell.column) != 1))
+            or (movement_direction == 'vertical' and (column != cell.column or abs(row - cell.row) != 1))
             or cell.type != 'water') or (not player.ship.has_pirates):
         return False
     else:
@@ -29,6 +30,9 @@ class Player():
         self.active_pirate = 0
         self.pirates = []
         self.ship = self.create_ship()
+        self.another_step_mode = False
+        self.plane_available = False
+        self.auto_steps = 0
         self.create_pirates()
         self.select_pirate(self.active_pirate)
 
@@ -40,7 +44,17 @@ class Player():
             self.pirates.append(Pirate(self.screen, i, cell.x+i*pirates_size, cell.y, column, row, self.color, pirates_size))
 
     def draw_pirates(self):
+        pirates_on_ship = []
+
+        if self.mode == 'ship':
+            pirates_on_ship = self.get_pirates_on_ship()
+
         for pirate in self.pirates:
+            if pirate in pirates_on_ship:
+                pirate.ship_y = self.ship.swing_y
+            else:
+                pirate.ship_y = 0
+                
             pirate.draw()
 
     def draw(self):
@@ -48,14 +62,20 @@ class Player():
         self.draw_pirates()
 
     def select_pirate(self, num):
-        if self.mode == 'ship':
+        if self.mode == 'ship' or self.another_step_mode:
             return
         
         self.active_pirate = num
         for pirate in self.pirates:
             pirate.set_active(self.pirates.index(pirate) == num)
 
-        self.field.update_available_cells(self.pirates[self.active_pirate].column, self.pirates[self.active_pirate].row)
+        self.field.update_available_cells(self.pirates[self.active_pirate].column, self.pirates[self.active_pirate].row, self)
+
+    def select_first_alive_pirate(self):
+        for i, pirate in enumerate(self.pirates):
+            if pirate.alive:
+                self.select_pirate(i)
+                break
 
     def deselect_pirates(self):
         for pirate in self.pirates:
@@ -70,7 +90,9 @@ class Player():
     def move_pirate(self, cell, pirate=None):
         if cell.card and not cell.card.opened:
             cell.card.open()
-        
+            if cell.card_type == 'PLANE':
+                self.plane_available = True
+
         pirates_near = 0
         for another_pirate in self.pirates:
             if another_pirate.column == cell.column and another_pirate.row == cell.row:
@@ -87,12 +109,22 @@ class Player():
         else:
             self.ship.remove_pirates()
 
+        if cell.type == 'water' and (self.ship.column != pirate.column or self.ship.row != pirate.row):
+            pirate.go_to_water()
+        else:
+            pirate.go_to_sand()
+
+        self.another_step_mode = False
+
     def move_ship(self, cell):
         pirates_on_ship = self.get_pirates_on_ship()
         for i, pirate in enumerate(pirates_on_ship):
             pirate.move(cell, i)
         self.ship.move(cell)
-        self.field.update_available_cells(self.ship.column, self.ship.row, self.ship.movement, self,
+        self.update_ship_available_cells()
+
+    def update_ship_available_cells(self):
+        self.field.update_available_cells(self.ship.column, self.ship.row, self,
                                           check_ship_cell_available)
 
     def respawn_pirate(self, pirate):
@@ -103,7 +135,7 @@ class Player():
         self.mode = 'ship'
         self.ship.set_active(True)
         self.deselect_pirates()
-        self.field.update_available_cells(self.ship.column, self.ship.row, self.ship.movement, self, check_ship_cell_available)
+        self.update_ship_available_cells()
     
     def enter_pirate_mode(self):
         self.mode = 'pirate'
@@ -112,3 +144,9 @@ class Player():
 
     def get_pirates_on_ship(self):
         return [pirate for pirate in self.pirates if (pirate.column == self.ship.column and pirate.row == self.ship.row)]
+    
+    def get_active_pirate(self):
+        return self.pirates[self.active_pirate]
+    
+    def get_active_pirate_prev_pos(self):
+        return [self.get_active_pirate().prev_column, self.get_active_pirate().prev_row]
