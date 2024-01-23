@@ -38,13 +38,25 @@ gun_left_image_file = pygame.image.load('images/gun_left.png')
 gun_right_image_file = pygame.image.load('images/gun_right.png')
 gun_bottom_image_file = pygame.image.load('images/gun_bottom.png')
 
+coin_disallowed_card_types = ['FORT', 'FORT_LIVE', 'CANNIBAL', 'GUN_TOP',
+                              'GUN_BOTTOM', 'GUN_RIGHT', 'GUN_LEFT']
 
+def check_ship_in_cell(cell, player=None):
+    if not player:
+        return False
+    return cell.column == player.ship.column and cell.row == player.ship.row
 
+def check_can_move_with_coin(cell, player=None):
+    active_pirate = player.get_active_pirate()
+
+    return ((active_pirate.with_coin and cell.card_type and cell.card.opened and not(cell.card_type in coin_disallowed_card_types))
+            or not active_pirate.with_coin or cell.type == 'water')
 
 def horse_available_cells(cell, column, row, player=None):
     return (((abs(cell.column - column) == 1 and abs(cell.row - row) == 2)
              or (abs(cell.column - column) == 2 and abs(cell.row - row) == 1))
-            and cell.type == 'ground')
+            and (cell.type == 'ground' or check_ship_in_cell(cell, player))
+            and check_can_move_with_coin(cell, player))
 
 
 def balloon_available_cells(cell, column, row, player=None):
@@ -60,7 +72,8 @@ def plane_available_cells(cell, column, row, player=None):
 
     if player.plane_available:
         return ((column != cell.column or row != cell.row)
-                and (cell.type == 'ground' or (cell.column == player.ship.column and cell.row == player.ship.row)))
+                and (cell.type == 'ground' or check_ship_in_cell(cell, player))
+            and check_can_move_with_coin(cell, player))
     else:
         return column == cell.column and row == cell.row
 
@@ -73,7 +86,7 @@ def ice_available_cells(cell, column, row, player=None):
     next_column = column + (column - prev_column)
     next_row = row + (row - prev_row)
 
-    return cell.column == next_column and cell.row == next_row
+    return (cell.column == next_column and cell.row == next_row) and check_can_move_with_coin(cell, player)
 
 
 def crocodile_available_cells(cell, column, row, player=None):
@@ -109,38 +122,44 @@ def gun_right_available_cells(cell, column, row, player=None):
 
 
 def arrow_1s_available_cells(cell, column, row, player=None):
-    return cell.row == row and cell.column - column == 1
+    return cell.row == row and cell.column - column == 1 and check_can_move_with_coin(cell, player)
 
 
 def arrow_2s_available_cells(cell, column, row, player=None):
-    return (cell.row == row and abs(cell.column - column) == 1) and (cell.type == 'ground')
+    return ((cell.row == row and abs(cell.column - column) == 1) and (cell.type == 'ground' or check_ship_in_cell(cell, player))
+            and check_can_move_with_coin(cell, player))
 
 
 def arrow_1d_available_cells(cell, column, row, player=None):
-    return cell.row == row - 1 and cell.column == column + 1
+    return cell.row == row - 1 and cell.column == column + 1 and check_can_move_with_coin(cell, player)
 
 
 def arrow_2d_available_cells(cell, column, row, player=None):
     return ((cell.row == row - 1 and cell.column == column + 1 or cell.row == row + 1 and cell.column == column - 1)
-            and (cell.type == 'ground'))
+            and (cell.type == 'ground') or check_ship_in_cell(cell, player)
+            and check_can_move_with_coin(cell, player))
 
 
 def arrow_3_available_cells(cell, column, row, player=None):
     return (((cell.row == row - 1 and cell.column == column - 1) or (cell.row == row and cell.column - column == 1) or
-            (cell.column == column and cell.row - row == 1)) and (cell.type == 'ground'))
+            (cell.column == column and cell.row - row == 1)) and (cell.type == 'ground') or check_ship_in_cell(cell, player)
+            and check_can_move_with_coin(cell, player))
 
 
 def arrow_4d_available_cells(cell, column, row, player=None):
-    return (abs(cell.column - column) == 1 and abs(cell.row - row) == 1) and (cell.type == 'ground')
+    return ((abs(cell.column - column) == 1 and abs(cell.row - row) == 1) and (cell.type == 'ground' or check_ship_in_cell(cell, player))
+            and check_can_move_with_coin(cell, player))
 
 
 def arrow_4s_available_cell(cell, column, row, player=None):
-    return ((abs(cell.column - column) == 1 and cell.row == row) or (abs(cell.row - row) == 1 and cell.column == column)) and (cell.type == 'ground')
+    return (((abs(cell.column - column) == 1 and cell.row == row) or (abs(cell.row - row) == 1 and cell.column == column))
+            and (cell.type == 'ground' or check_ship_in_cell(cell, player))
+            and check_can_move_with_coin(cell, player))
 
 
 card_types = {
     'EMPTY': {
-        'quantity': 40,
+        'quantity': 44,
         'image': empty_image_file_1
     },
     'ARROW_1D': {
@@ -174,36 +193,36 @@ card_types = {
         'available cells': arrow_3_available_cells
     },
     'ARROW_4D': {
-        'quantity': 3,
+        'quantity': 4,
         'image': arrow_4d_image_file,
         'available cells': arrow_4d_available_cells
     },
     'ARROW_4S': {
-        'quantity': 3,
+        'quantity': 4,
         'image': arrow_4s_image_file,
         'available cells': arrow_4s_available_cell
     },
     'HORSE': {
-        'quantity': 2,
+        'quantity': 4,
         'image': horse_image_file,
         'available cells': horse_available_cells
     },
-    'ROTATE_2': {
-        'quantity': 5,
-        'image': rotate_2_image_file
-    },
-    'ROTATE_3': {
-        'quantity': 4,
-        'image': rotate_3_image_file
-    },
+    # 'ROTATE_2': {
+    #     'quantity': 5,
+    #     'image': rotate_2_image_file
+    # },
+    # 'ROTATE_3': {
+    #     'quantity': 4,
+    #     'image': rotate_3_image_file
+    # },
     # 'ROTATE_4': {
     #     'quantity': 2,
     #     'image': rotate_4_image_file
     # },
-    'ROTATE_5': {
-        'quantity': 1,
-        'image': rotate_5_image_file
-    },
+    # 'ROTATE_5': {
+    #     'quantity': 1,
+    #     'image': rotate_5_image_file
+    # },
     'ICE': {
         'quantity': 6,
         'image': ice_image_file,
@@ -220,7 +239,7 @@ card_types = {
         'available cells': crocodile_available_cells
     },
     'CANNIBAL': {
-        'quantity': 1,
+        'quantity': 2,
         'image': cannibal_image_file
     },
     'FORT': {
@@ -257,7 +276,7 @@ card_types = {
         'available cells': plane_available_cells
     },
     'BALLOON': {
-        'quantity': 2,
+        'quantity': 3,
         'image': balloon_image_file,
         'available cells': balloon_available_cells
     },

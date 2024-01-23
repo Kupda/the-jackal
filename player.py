@@ -1,6 +1,7 @@
 import pygame
 from pirate import Pirate
 from ship import Ship
+from audio import audio
 
 start_pos = {
     'black': [6, 0],
@@ -13,8 +14,8 @@ start_pos = {
 def check_ship_cell_available(cell, column, row, player=None):
     movement_direction = player.ship.movement
     if ((movement_direction == 'horizontal' and (row != cell.row or abs(column - cell.column) != 1))
-            or (movement_direction == 'vertical' and (column != cell.column or abs(row - cell.row) != 1))
-            or cell.type != 'water') or (not player.ship.has_pirates):
+        or (movement_direction == 'vertical' and (column != cell.column or abs(row - cell.row) != 1))
+        or cell.type != 'water') or (not player.ship.has_pirates):
         return False
     else:
         return True
@@ -41,7 +42,8 @@ class Player():
         column, row = start_pos[self.color]
         cell = self.field.get_cell_by_pos(column, row)
         for i in range(3):
-            self.pirates.append(Pirate(self.screen, i, cell.x+i*pirates_size, cell.y, column, row, self.color, pirates_size))
+            self.pirates.append(
+                Pirate(self.screen, i, cell.x + i * pirates_size, cell.y, column, row, self.color, pirates_size))
 
     def draw_pirates(self):
         pirates_on_ship = []
@@ -54,7 +56,7 @@ class Player():
                 pirate.ship_y = self.ship.swing_y
             else:
                 pirate.ship_y = 0
-                
+
             pirate.draw()
 
     def draw(self):
@@ -64,12 +66,13 @@ class Player():
     def select_pirate(self, num):
         if self.mode == 'ship' or self.another_step_mode:
             return
-        
+
         self.active_pirate = num
         for pirate in self.pirates:
             pirate.set_active(self.pirates.index(pirate) == num)
 
-        self.field.update_available_cells(self.pirates[self.active_pirate].column, self.pirates[self.active_pirate].row, self)
+        self.field.update_available_cells(self.pirates[self.active_pirate].column, self.pirates[self.active_pirate].row,
+                                          self)
 
     def select_first_alive_pirate(self):
         for i, pirate in enumerate(self.pirates):
@@ -114,7 +117,19 @@ class Player():
         else:
             pirate.go_to_sand()
 
+        if (self.ship.column == pirate.column and self.ship.row == pirate.row
+                and pirate.with_coin):
+            self.collect_coin()
+            pirate.with_coin = False
+
         self.another_step_mode = False
+
+    def revive_pirate(self, cell):
+        dead_pirates = self.get_dead_pirates()
+
+        if len(dead_pirates) > 0:
+            dead_pirates[0].revive()
+            self.move_pirate(cell, dead_pirates[0])
 
     def move_ship(self, cell):
         pirates_on_ship = self.get_pirates_on_ship()
@@ -127,26 +142,37 @@ class Player():
         self.field.update_available_cells(self.ship.column, self.ship.row, self,
                                           check_ship_cell_available)
 
-    def respawn_pirate(self, pirate):
-        cell = self.field.get_cell_by_pos(self.ship.column, self.ship.row)
-        self.move_pirate(cell, pirate)
+    def respawn_pirate(self, pirate, cell):
+        audio.shoot_sound.play()
+        ship_cell = self.field.get_cell_by_pos(self.ship.column, self.ship.row)
+        self.move_pirate(ship_cell, pirate)
+
+        if pirate.with_coin:
+            pirate.drop_coin(cell)
 
     def enter_ship_mode(self):
         self.mode = 'ship'
         self.ship.set_active(True)
         self.deselect_pirates()
         self.update_ship_available_cells()
-    
+
     def enter_pirate_mode(self):
         self.mode = 'pirate'
         self.ship.set_active(False)
         self.select_pirate(0)
 
+    def collect_coin(self):
+        self.coins += 1
+
     def get_pirates_on_ship(self):
-        return [pirate for pirate in self.pirates if (pirate.column == self.ship.column and pirate.row == self.ship.row)]
-    
+        return [pirate for pirate in self.pirates if
+                (pirate.column == self.ship.column and pirate.row == self.ship.row)]
+
     def get_active_pirate(self):
         return self.pirates[self.active_pirate]
-    
+
     def get_active_pirate_prev_pos(self):
         return [self.get_active_pirate().prev_column, self.get_active_pirate().prev_row]
+
+    def get_dead_pirates(self):
+        return [pirate for pirate in self.pirates if pirate.alive == False]

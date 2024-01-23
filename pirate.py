@@ -1,13 +1,14 @@
 import pygame
 from audio import audio
 
-pirate_img = pygame.image.load('images/pirate.png')
 pirates_img = {
     'black': pygame.image.load('images/pirate_black.png'),
-    'white':  pygame.image.load('images/pirate_white.png'),
-    'yellow':  pygame.image.load('images/pirate_yellow.png'),
-    'red':  pygame.image.load('images/pirate_red.png')
+    'white': pygame.image.load('images/pirate_white.png'),
+    'yellow': pygame.image.load('images/pirate_yellow.png'),
+    'red': pygame.image.load('images/pirate_red.png')
 }
+
+coin_img = pygame.image.load('images/coin.png')
 
 
 class Pirate():
@@ -31,42 +32,53 @@ class Pirate():
         self.active = False
         self.swimming = False
         self.image = pygame.transform.scale(pirates_img[self.color], (size, size))
+        self.coin_image = pygame.transform.scale(coin_img, (self.size * 0.6, self.size * 0.6))
         self.rect = pygame.Rect(self.x, self.y, self.size, self.size)
 
-    def die(self):
+    def die(self, cell):
         self.alive = False
         self.column = -1
         self.row = -1
         audio.dead_sound.play()
 
+        if self.with_coin:
+            self.drop_coin(cell)
+
     def revive(self):
         self.alive = True
 
-    def drop_coin(self):
+    def drop_coin(self, cell):
         self.with_coin = False
+        cell.coin.add_coin()
 
-    def bring_coin(self):
+    def grab_coin(self, cell):
         self.with_coin = True
+        cell.coin.remove_coin()
 
     def draw(self):
         if not self.alive:
             return
-        
+
         y = self.y + self.ship_y
-        
+
         if self.active:
             self.jump()
             y += self.jump_y
 
         self.screen.blit(self.image, (self.x, y))
 
+        if self.with_coin:
+            self.screen.blit(self.coin_image, (self.x, y + self.size))
+
     def set_active(self, active):
         self.active = active
+
         if active:
             size = self.size * 1.2
             self.start_jumping()
         else:
             size = self.size
+
         self.image = pygame.transform.scale(pirates_img[self.color], (size, size))
 
     def move(self, cell, pirates_near=0):
@@ -87,7 +99,7 @@ class Pirate():
             self.jump_direction = 0.5
         elif self.jump_y >= 0:
             self.jump_direction = -0.5
-        
+
         self.jump_y += self.jump_direction
 
     def go_to_water(self):
@@ -95,7 +107,6 @@ class Pirate():
 
     def go_to_sand(self):
         self.swimming = False
-
 
     def __eq__(self, other):
         return self.index == other.index

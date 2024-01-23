@@ -1,19 +1,11 @@
-import pygame
 import button
-import time
-import os
 from .events import *
 
 
-resume_img = pygame.image.load("images/start_game.png")
+resume_img = pygame.image.load("images/resume1.png")
 options_img = pygame.image.load("images/options.png")
 quit_img = pygame.image.load("images/quit.png")
-replay_img = pygame.image.load("images/replay.png")
-video_img = pygame.image.load('images/button_video.png')
-audio_img = pygame.image.load('images/button_audio.png')
-keys_img = pygame.image.load('images/button_keys.png')
-back_img = pygame.image.load('images/button_back.png')
-TEXT_COL = (255, 255, 255)
+replay_img = pygame.image.load("images/start_game.png")
 
 
 class MenuScreen():
@@ -21,18 +13,22 @@ class MenuScreen():
         self.x, self.y = screen.get_size()
         self.font = font
         self.screen = screen
-        self.resume_button = button.Button(self.x / 2 - 150, self.y / 2 - 150, resume_img, 0.75, self.start_game)
-        self.replay_button = button.Button(self.x / 2 - 150, self.y / 2 + 0, replay_img, 0.75)
+        self.resume_available = False
+        self.resume_button = button.Button(self.x / 2 - 150, self.y / 2 - 150, resume_img, 0.75, self.resume_game)
+        self.replay_button = button.Button(self.x / 2 - 150, self.y / 2 - 0, replay_img, 0.75, self.start_game)
         self.options_button = button.Button(self.x / 2 - 150, self.y / 2 + 150, options_img, 0.75, self.open_settings)
         self.quit_button = button.Button(self.x / 2 - 150, self.y / 2 + 300, quit_img, 0.75, self.quit_game)
 
-    def draw_text(self, text, text_col, x, y):
+    def draw_text(self, text, text_col):
         img = self.font.render(text, True, text_col)
-        self.screen.blit(img, (x, y))
+        text_rect = img.get_rect(center=(self.x / 2, self.y / 2 - 300))
+        self.screen.blit(img, text_rect)
 
     def draw(self):
-        self.draw_text("GAME", TEXT_COL, self.x / 2 - 50, self.y / 2 - 300)
-        self.resume_button.draw(self.screen)
+        self.draw_text("ШАКАЛ", 'white')
+        if self.resume_available:
+            self.resume_button.draw(self.screen)
+
         self.replay_button.draw(self.screen)
         self.options_button.draw(self.screen)
         self.quit_button.draw(self.screen)
@@ -51,3 +47,8 @@ class MenuScreen():
 
     def pass_event(self, event):
         pass
+
+    def resume_game(self):
+        if self.resume_available:
+            resume_game_event = pygame.event.Event(OPEN_GAME_SCREEN)
+            pygame.event.post(resume_game_event)

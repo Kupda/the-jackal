@@ -23,12 +23,13 @@ class PlayersScreen():
         back_event = pygame.event.Event(OPEN_MENU_SCREEN)
         pygame.event.post(back_event)
 
-    def draw_text(self, text, text_col, x, y):
+    def draw_text(self, text, text_col):
         img = self.font.render(text, True, text_col)
-        self.screen.blit(img, (x, y))
+        text_rect = img.get_rect(center=(self.x / 2, self.y / 2 - 300))
+        self.screen.blit(img, text_rect)
 
     def draw(self):
-        self.draw_text("Choose player count", "black", self.x / 2 - 50, self.y / 2 - 300)
+        self.draw_text("Выберите количество игроков".upper(), "white")
         self.player2_btn.draw(self.screen)
         self.player3_btn.draw(self.screen)
         self.player4_btn.draw(self.screen)
