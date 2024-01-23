@@ -173,7 +173,6 @@ class GameScreen():
         for i, player in enumerate(self.players):
             if i != self.current_player and player.ship.column == cell.column and player.ship.row == cell.row:
                 self.get_current_player().get_active_pirate().die(cell)
-                print('DIE DIE Gamescreen')
                 ship_in_cell = True
                 break
 
@@ -181,7 +180,7 @@ class GameScreen():
 
     def change_player(self):
         sum = self.calculate_coins()
-        if sum == 1:
+        if sum == 37:
             winner = self.get_winner()
             finish_event = pygame.event.Event(OPEN_FINISH_GAME, winner=winner)
             pygame.event.post(finish_event)
